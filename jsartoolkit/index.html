@@ -1,58 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <title>Augmented Reality</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-<!--
--->
-  <script type="text/javascript" src="lib/JSARToolKit.min.js"></script>
-  <script type="text/javascript" src="build/app.js"></script>
+    <head>
+        <title>Augmented Reality</title>
 
-  <style>
-    html{
-      height: 100%;
-    }
-    body {
-      margin: 0px;
-      /*overflow: hidden;*/
-      font-family: sans-serif;
-      font-size: 15px;
-      height: 100%;
-    }
-    #container{
-      position: relative;
-    }
-    #threejs{
-      position: absolute;
-      z-index: 1;
-    }
-    #feed{
-      position: absolute;
-      z-index: 0;
-    }
-    #debugCanvas{
-      position: absolute;
-      bottom: 0;
-      z-index: 2;
-    }
-    #threshold{
-      margin-left: 50px;
-    }
-  </style>
-</head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
-<body>
+        <link rel="stylesheet" href="styles.css">
 
-  <div id="controls">
-    <input type="range" id="threshold" min="1" max="300" step="1"/>
-  </div>
+        <script src="lib/JSARToolKit.min.js"></script>
+        <script src="build/app.js"></script>
+    </head>
 
-  <div id="container">
-    <div id="threejs"></div>
-    <video id="feed" loop="true" autoplay="true" controls="controls"></video>
-  </div>
+    <body>
 
-</body>
+        <div id="controls">
+            <input type="range" id="threshold" min="1" max="300" step="1"/>
+        </div>
+
+        <div id="container">
+            <div id="threejs"></div>
+            <video id="feed" loop="true" autoplay="true" controls="controls"></video>
+        </div>
+
+    </body>
 
 </html>
