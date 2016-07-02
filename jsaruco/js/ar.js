@@ -95,6 +95,29 @@ class JsAruco {
         this._posit         = new window.POS.Posit(this._markerSize, this.width);
     }
 
+    _outlineMarker(corners, color = 'red') {
+        this._context.strokeStyle = color;
+        this._context.beginPath();
+
+        for (let j = 0; j < corners.length; ++j) {
+            let corner = corners[j];
+
+            this._context.moveTo(corner.x, corner.y);
+
+            corner = corners[(j + 1) % corners.length];
+
+            this._context.lineTo(corner.x, corner.y);
+        }
+
+        this._context.stroke();
+        this._context.closePath();
+    }
+
+    _markCorner(corner, color = 'green') {
+        this._context.strokeStyle = color;
+        this._context.strokeRect(corner.x - 8, corner.y - 8, 16, 16);
+    }
+
     _setup(event) {
         this.width         = this._display.width || window.innerWidth;
         this.ratio         = event.target.clientWidth / event.target.clientHeight;
@@ -124,27 +147,9 @@ class JsAruco {
 
             corners = markers[0].corners;
 
-            // If we are debugging, we use the marker corner information to draw an outline
-            // around the detected marker.
             if (this._debug) {
-                this._context.strokeStyle = 'red';
-                this._context.beginPath();
-
-                for (let j = 0; j < corners.length; ++j) {
-                    let corner = corners[j];
-
-                    this._context.moveTo(corner.x, corner.y);
-
-                    corner = corners[(j + 1) % corners.length];
-
-                    this._context.lineTo(corner.x, corner.y);
-                }
-
-                this._context.stroke();
-                this._context.closePath();
-
-                this._context.strokeStyle = 'green';
-                this._context.strokeRect(corners[0].x - 2, corners[0].y - 2, 4, 4);
+                this._outlineMarker(corners);
+                this._markCorner(corners[0]);
             }
 
             for (let n = 0; n < corners.length; n += 1) {
