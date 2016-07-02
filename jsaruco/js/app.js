@@ -27,7 +27,7 @@ function onConfigLoad(config) {
 
         feed = (config.feed === 'camera') ?
             ar.setCameraFeed() :
-            ar.setVideoFeed(config.feed);
+            ar.setVideoFeed(config.feed),
 
         onFeedEstablished = function () {
             scene.resize(ar.width, ar.height);
