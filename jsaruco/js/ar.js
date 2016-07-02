@@ -10,8 +10,6 @@ const VIDEO_WIDTH = 480;           // video feed doesn't have to match the size 
 class JsAruco {
 
     constructor(settings) {
-        this._detector   = new window.AR.Detector();
-
         this._markerSize = settings.modelSize || 39; // size of the markers in real life in mm
         this._debug      = settings.debug;
         this._video      = settings.video;
@@ -104,23 +102,30 @@ class JsAruco {
         this._video.width  = VIDEO_WIDTH;
         this._video.height = (1 / this.ratio) * VIDEO_WIDTH;
 
+        // NOTE The worker must be called from the base.
+        this._worker = new Worker('js/worker.js');
+
+        this._worker.onerror = function (error, s) {
+            console.error(error);
+        };
+
         this.resize(this.width, this.height);
 
-        this._tick();
-    }
+        this._worker.onmessage = (e) => {
+            let corners,
+                markers = e.data;
 
-    _tick() {
-        this._context.drawImage(this._video, 0, 0, this.width, this.height);
+            if (!markers.length) {
+                return;
+            }
 
-        let imageData = this._context.getImageData(0, 0, this.width, this.height),
-            markers   = this._detector.detect(imageData);
+            // // markers.forEach((marker) => {
+            // //     let corners = marker.corners;
 
-        // // markers.forEach((marker) => {
-        // //     let corners = marker.corners;
+            corners = markers[0].corners;
 
-        if (markers.length > 0) {
-            let corners = markers[0].corners;
-
+            // If we are debugging, we use the marker corner information to draw an outline
+            // around the detected marker.
             if (this._debug) {
                 this._context.strokeStyle = 'red';
                 this._context.beginPath();
@@ -129,7 +134,9 @@ class JsAruco {
                     let corner = corners[j];
 
                     this._context.moveTo(corner.x, corner.y);
+
                     corner = corners[(j + 1) % corners.length];
+
                     this._context.lineTo(corner.x, corner.y);
                 }
 
@@ -140,10 +147,12 @@ class JsAruco {
                 this._context.strokeRect(corners[0].x - 2, corners[0].y - 2, 4, 4);
             }
 
-            corners.forEach((corner) => {
+            for (let n = 0; n < corners.length; n += 1) {
+                let corner = corners[n];
+
                 corner.x = corner.x - (this.width / 2);
                 corner.y = (this.height / 2) - corner.y;
-            });
+            }
 
             let object3d = new THREE.Object3D(),
                 pose     = this._posit.pose(corners),
@@ -166,9 +175,19 @@ class JsAruco {
             document.dispatchEvent(new Event('ar'));
         }
 
-        requestAnimationFrame(() => {
-            this._tick();
-        });
+        this._tick();
+    }
+
+    _tick() {
+        // Send the video feed as an input and draw the snapshot on the canvas feed display.
+        this._context.drawImage(this._video, 0, 0, this.width, this.height);
+
+        // Now we have the snapshot, we need to scrap it from the canvas and send it to be
+        // processed in the web worker...
+        this._worker.postMessage(this._context.getImageData(0, 0, this.width, this.height));
+
+        // ...and keep the render loop running.
+        requestAnimationFrame(() => this._tick());
     }
 }
 
