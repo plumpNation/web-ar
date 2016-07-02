@@ -35,11 +35,9 @@ function onConfigLoad(config) {
             scene.loadModel(config.model, config.settings);
         };
 
-    feed.then(onFeedEstablished, function (e) {
-        console.error(e);
-    });
+    feed.then(onFeedEstablished, (e) => console.error(e));
 
-    document.addEventListener('ar', () => scene.update(ar.getData()));
+    document.addEventListener('AR.UPDATED', (e) => scene.update(e.detail));
 
     window.addEventListener('resize', () => {
         ar.resize(window.innerWidth, window.innerHeight);

@@ -27,10 +27,6 @@ class JsAruco {
         }
 
         this._context = this._canvas.getContext('2d');
-
-        this._data = {
-            object3d: new THREE.Object3D()
-        };
     }
 
     setCameraFeed() {
@@ -82,10 +78,6 @@ class JsAruco {
         });
     }
 
-    getData() {
-        return this._data;
-    }
-
     resize(width/*, height*/) {
         // @TODO: add support for portrait
         this.width          = width;
@@ -118,6 +110,40 @@ class JsAruco {
         this._context.strokeRect(corner.x - 8, corner.y - 8, 16, 16);
     }
 
+    _pose3dObject(object3d, pose) {
+        let position = pose.bestTranslation,
+            rotation = pose.bestRotation;
+
+        object3d.position.set(position[0], position[1], -position[2]);
+
+        object3d.rotation.x = -Math.asin(-rotation[1][2]);
+        object3d.rotation.y = -Math.atan2(rotation[0][2], rotation[2][2]);
+        object3d.rotation.z =  Math.atan2(rotation[1][0], rotation[1][1]);
+
+        // object3d.updateMatrix();
+
+        return object3d;
+    }
+
+    _calculatePose(corners) {
+        // Now the corner information needs to be converted to place the 3d model correctly.
+        for (let n = 0; n < corners.length; n += 1) {
+            let corner = corners[n];
+
+            corner.x = corner.x - (this.width / 2);
+            corner.y = (this.height / 2) - corner.y;
+        }
+
+        return this._posit.pose(corners);
+    }
+
+    _create3dModelForAR(corners) {
+        let pose     = this._calculatePose(corners),
+            object3d = this._pose3dObject(new THREE.Object3D(), pose);
+
+        document.dispatchEvent(new CustomEvent('AR.UPDATED', {'detail': {'object3d': object3d}}));
+    }
+
     _setup(event) {
         this.width         = this._display.width || window.innerWidth;
         this.ratio         = event.target.clientWidth / event.target.clientHeight;
@@ -135,10 +161,13 @@ class JsAruco {
         this.resize(this.width, this.height);
 
         this._worker.onmessage = (e) => {
-            let corners,
+            let pose,
+                corners,
+                object3d,
                 markers = e.data;
 
             if (!markers.length) {
+                requestAnimationFrame(() => this._tick());
                 return;
             }
 
@@ -152,32 +181,8 @@ class JsAruco {
                 this._markCorner(corners[0]);
             }
 
-            for (let n = 0; n < corners.length; n += 1) {
-                let corner = corners[n];
+            this._create3dModelForAR(corners);
 
-                corner.x = corner.x - (this.width / 2);
-                corner.y = (this.height / 2) - corner.y;
-            }
-
-            let object3d = new THREE.Object3D(),
-                pose     = this._posit.pose(corners),
-                position = pose.bestTranslation;
-
-            object3d.position.set(position[0], position[1], -position[2]);
-
-            let rotation = pose.bestRotation;
-
-            object3d.rotation.x = -Math.asin(-rotation[1][2]);
-            object3d.rotation.y = -Math.atan2(rotation[0][2], rotation[2][2]);
-            object3d.rotation.z =  Math.atan2(rotation[1][0], rotation[1][1]);
-
-            // object3d.updateMatrix();
-
-            this._data = {
-                object3d: object3d
-            };
-
-            document.dispatchEvent(new Event('ar'));
         }
 
         this._tick();
