@@ -1,12 +1,13 @@
 {
-  "feed": "data/test.ogg",
-  "model": "data/fiets.json",
-  "settings": {
-    "scale": 1,
-    "rotation": {
-      "x": 0,
-      "y": 0,
-      "z": 0
+    "feed": "camera",
+    "model": "data/fiets.json",
+    "debug": true,
+    "settings": {
+        "scale": 1,
+        "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+        }
     }
-  }
 }

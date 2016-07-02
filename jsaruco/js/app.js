@@ -1,55 +1,53 @@
 require('babel-polyfill');
 
 import Scene from './scene3d';
-import AR from './ar';
+import JsAruco from './ar';
 import {ajax} from './util';
 
+window.onload = function () {
+    let url = window.location.hash.substring(1);
 
-window.onload = function(){
+    ajax({'url': url, 'responseType': 'json'})
+        .then(onConfigLoad, onError);
+};
 
-  let url = window.location.hash.substring(1);
+function onConfigLoad(config) {
+    let arOptions = {
+            video    : document.getElementById('feed'),
+            canvas   : document.getElementById('ar'),
+            debug    : config.debug,
+            modelSize: config.markerSize || 39
+        },
 
-  ajax({url: url, responseType: 'json'}).then(
+        ar = new JsAruco(arOptions),
 
-    function resolve(config){
+        scene = new Scene({
+            element: document.getElementById('threejs')
+        }),
 
-      let ar = new AR({
-        video: document.getElementById('feed'),
-        canvas: document.getElementById('ar'),
-        debug: true,
-        modelSize: config.markerSize || 39
-      });
+        feed = (config.feed === 'camera') ?
+            ar.setCameraFeed() :
+            ar.setVideoFeed(config.feed);
 
-      let scene = new Scene({
-        element: document.getElementById('threejs')
-      });
+        onFeedEstablished = function () {
+            scene.resize(ar.width, ar.height);
+            scene.loadModel(config.model, config.settings);
+        };
 
-      document.addEventListener('ar', function(){
-        scene.update(ar.getData());
-      });
+    feed.then(onFeedEstablished, function (e) {
+        console.error(e);
+    });
 
-      window.addEventListener('resize', function(){
+    document.addEventListener('ar', () => scene.update(ar.getData()));
+
+    window.addEventListener('resize', () => {
         ar.resize(window.innerWidth, window.innerHeight);
         scene.resize(ar.width, ar.height);
-      });
+    });
+}
 
+function onError(e){
+    console.error('error', e);
 
-      if(config.feed === 'camera'){
-        ar.setCameraFeed().then(function(){
-          scene.resize(ar.width, ar.height);
-          scene.loadModel(config.model, config.settings);
-        });
-      }else{
-        ar.setVideoFeed(config.feed).then(function(){
-          scene.resize(ar.width, ar.height);
-          scene.loadModel(config.model, config.settings);
-        });
-      }
-    },
-
-    function reject(e){
-      console.error('error', e);
-      document.getElementById('container').innerText = e;
-    }
-  );
-};
+    document.getElementById('container').innerText = e;
+}

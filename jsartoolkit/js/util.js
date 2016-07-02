@@ -1,17 +1,18 @@
 import THREE from 'three';
 
 function ajax(config) {
-    let request = new XMLHttpRequest(),
-        method  = config.method || 'GET',
-        fileSize;
+    let fileSize,
+
+        request = new XMLHttpRequest(),
+        method  = config.method || 'GET';
 
     function executor(resolve, reject) {
-
         reject  = reject  || function () {};
         resolve = resolve || function () {};
 
-        if (typeof config.url === 'undefined' || config.url === '') {
+        if (!config.url) {
             reject('please provide a url');
+
             return;
         }
 
