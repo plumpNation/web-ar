@@ -161,9 +161,7 @@ class JsAruco {
         this.resize(this.width, this.height);
 
         this._worker.onmessage = (e) => {
-            let pose,
-                corners,
-                object3d,
+            let corners,
                 markers = e.data;
 
             if (!markers.length) {
