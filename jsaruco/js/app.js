@@ -14,9 +14,10 @@ window.onload = function () {
 function onConfigLoad(config) {
     let arOptions = {
             video    : document.getElementById('feed'),
-            canvas   : document.getElementById('ar'),
+            canvas   : document.getElementById('feed-display'),
             debug    : config.debug,
-            modelSize: config.markerSize || 39
+            modelSize: config.markerSize || 39,
+            display  : config.display || {}
         },
 
         ar = new JsAruco(arOptions),

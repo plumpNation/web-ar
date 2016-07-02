@@ -16,7 +16,8 @@ function onSettingsLoaded(config) {
         ar = getARInstance({
             video : document.getElementById('feed'),
             camera: scene.camera,
-            debug : debug
+            debug : debug,
+            display: config.display
         });
 
     document.addEventListener('ar', function () {

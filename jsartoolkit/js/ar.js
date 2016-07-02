@@ -3,14 +3,13 @@ import THREE from 'three';
 
 const CAPTURE_WIDTH = 640;
 
-let instance;
-let FLARParam = window.FLARParam;
-let NyARRgbRaster_Canvas2D = window.NyARRgbRaster_Canvas2D;
-let FLARSingleIdMarkerDetector = window.FLARSingleIdMarkerDetector;
-let NyARTransMatResult = window.NyARTransMatResult;
+let instance,
+    FLARParam                  = window.FLARParam,
+    NyARRgbRaster_Canvas2D     = window.NyARRgbRaster_Canvas2D,
+    FLARSingleIdMarkerDetector = window.FLARSingleIdMarkerDetector,
+    NyARTransMatResult         = window.NyARTransMatResult;
 
-class AR{
-
+class AR {
     constructor(settings) {
         // JSARToolKit uses a global DEBUG variable (!)
         window.DEBUG = settings.debug;
@@ -20,6 +19,8 @@ class AR{
 
         // out of 100
         this._threshold = settings.threshold || 100;
+
+        this._display = settings.display || {};
 
         this.camera         = settings.camera;
         this.video          = settings.video;
@@ -33,6 +34,11 @@ class AR{
 
     setCameraFeed() {
         return new Promise((resolve, reject) => {
+            navigator.getUserMedia =
+                navigator.getUserMedia ||
+                navigator.webkitGetUserMedia ||
+                navigator.mozGetUserMedia;
+
             if (!navigator.getUserMedia) {
                 reject('no support for getUserMedia, use a video feed');
                 return;
@@ -61,7 +67,6 @@ class AR{
         });
     }
 
-
     setVideoFeed(url) {
         return new Promise((resolve, reject) => {
             this.video.addEventListener('loadedmetadata', (e) => {
@@ -74,16 +79,13 @@ class AR{
         });
     }
 
-
     getData() {
         return this.glMatrix;
     }
 
-
     setThreshold(value) {
         this._threshold = value;
     }
-
 
     _tick() {
         let markerDetected;
@@ -124,7 +126,7 @@ class AR{
     _setup(e) {
         this.ratio  = e.target.clientWidth / e.target.clientHeight;
 
-        this.width  = window.innerWidth;
+        this.width  = this._display.width || window.innerWidth;
         this.height = (1 / this.ratio) * this.width;
         //this.height = (1 / this.ratio) * CAPTURE_WIDTH;
 

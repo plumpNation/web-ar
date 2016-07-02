@@ -2,8 +2,11 @@
     "feed": "camera",
     "model": "data/fiets.json",
     "debug": true,
+    "display": {
+        "width": 600
+    },
     "settings": {
-        "scale": 1,
+        "scale": 0.5,
         "rotation": {
             "x": 0,
             "y": 0,

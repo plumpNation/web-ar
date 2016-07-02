@@ -1,12 +1,15 @@
 {
-  "feed": "camera",
-  "model": "data/fiets.json",
-  "settings": {
-    "scale": 1,
-    "rotation": {
-      "x": -180,
-      "y": 0,
-      "z": 0
+    "feed": "camera",
+    "model": "data/fiets.json",
+    "display": {
+            "width": 600
+    },
+    "settings": {
+        "scale": 1,
+        "rotation": {
+            "x": -180,
+            "y": 0,
+            "z": 0
+        }
     }
-  }
 }

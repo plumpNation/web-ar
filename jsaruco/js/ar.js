@@ -5,16 +5,17 @@ import cv from '../lib/cv';        // adds global variable CV to window
 import pos from '../lib/posit2';   // adds global variable POS to window
 import THREE from 'three';
 
-
-const VIDEO_WIDTH = 480; // video feed doesn't have to match the size of the scene
+const VIDEO_WIDTH = 480;           // video feed doesn't have to match the size of the scene
 
 class JsAruco {
 
     constructor(settings) {
         this._detector   = new window.AR.Detector();
+
         this._markerSize = settings.modelSize || 39; // size of the markers in real life in mm
         this._debug      = settings.debug;
         this._video      = settings.video;
+        this._display    = settings.display || {};
 
         if (!settings.canvas) {
             this._canvas = document.createElement('canvas');
@@ -36,7 +37,10 @@ class JsAruco {
 
     setCameraFeed() {
         return new Promise((resolve, reject) => {
-            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+            navigator.getUserMedia =
+                navigator.getUserMedia ||
+                navigator.webkitGetUserMedia ||
+                navigator.mozGetUserMedia;
 
             if (!navigator.getUserMedia) {
                 reject('no support for getUserMedia, use a video feed');
@@ -44,10 +48,11 @@ class JsAruco {
             }
 
             navigator.getUserMedia({video: true},
-                //success
+                // success
                 (stream) => {
                     this._video.addEventListener('loadedmetadata', (e) => {
                         this._setup(e);
+
                         resolve();
                     });
 
@@ -58,7 +63,8 @@ class JsAruco {
                         this._video.src = stream;
                     }
                 },
-                //error
+
+                // error
                 (msg) => {
                     reject('access to webcam not granted', msg);
                 }
@@ -66,11 +72,11 @@ class JsAruco {
         });
     }
 
-
     setVideoFeed(url) {
         return new Promise((resolve, reject) => {
             this._video.addEventListener('loadedmetadata', (event) => {
                 this._setup(event);
+
                 resolve();
             });
 
@@ -78,12 +84,11 @@ class JsAruco {
         });
     }
 
-
     getData() {
         return this._data;
     }
 
-    resize(width, height) {
+    resize(width/*, height*/) {
         // @TODO: add support for portrait
         this.width          = width;
         this.height         = (1 / this.ratio) * this.width;
@@ -92,10 +97,9 @@ class JsAruco {
         this._posit         = new window.POS.Posit(this._markerSize, this.width);
     }
 
-
     _setup(event) {
+        this.width         = this._display.width || window.innerWidth;
         this.ratio         = event.target.clientWidth / event.target.clientHeight;
-        this.width         = window.innerWidth;
         this.height        = (1 / this.ratio) * this.width;
         this._video.width  = VIDEO_WIDTH;
         this._video.height = (1 / this.ratio) * VIDEO_WIDTH;
@@ -105,15 +109,14 @@ class JsAruco {
         this._tick();
     }
 
-
     _tick() {
         this._context.drawImage(this._video, 0, 0, this.width, this.height);
 
-        let imageData = this._context.getImageData(0, 0, this.width, this.height);
-        let markers   = this._detector.detect(imageData);
+        let imageData = this._context.getImageData(0, 0, this.width, this.height),
+            markers   = this._detector.detect(imageData);
 
-        // markers.forEach((marker) => {
-        //     let corners = marker.corners;
+        // // markers.forEach((marker) => {
+        // //     let corners = marker.corners;
 
         if (markers.length > 0) {
             let corners = markers[0].corners;
