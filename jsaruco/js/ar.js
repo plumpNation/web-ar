@@ -6,9 +6,11 @@ import pos from '../lib/posit2';   // adds global variable POS to window
 import THREE from 'three';
 
 const VIDEO_WIDTH = 480;           // video feed doesn't have to match the size of the scene
+const AR_EVENT = {
+    'UPDATED': 'arEventUpdated'
+};
 
-class JsAruco {
-
+class AR {
     constructor(settings) {
         this._markerSize = settings.modelSize || 39; // size of the markers in real life in mm
         this._debug      = settings.debug;
@@ -138,34 +140,25 @@ class JsAruco {
     }
 
     _create3dModelForAR(corners) {
-        let pose     = this._calculatePose(corners),
-            object3d = this._pose3dObject(new THREE.Object3D(), pose);
+        let pose          = this._calculatePose(corners),
+            posed3dObject = this._pose3dObject(new THREE.Object3D(), pose),
+            eventData     = {'object3d': posed3dObject};
 
-        document.dispatchEvent(new CustomEvent('AR.UPDATED', {'detail': {'object3d': object3d}}));
+        document.dispatchEvent(new CustomEvent(AR_EVENT.UPDATED, {'detail': eventData}));
     }
 
-    _setup(event) {
-        this.width         = this._display.width || window.innerWidth;
-        this.ratio         = event.target.clientWidth / event.target.clientHeight;
-        this.height        = (1 / this.ratio) * this.width;
-        this._video.width  = VIDEO_WIDTH;
-        this._video.height = (1 / this.ratio) * VIDEO_WIDTH;
+    _createWorker() {
+        let worker = new Worker('js/worker.js');
 
-        // NOTE The worker must be called from the base.
-        this._worker = new Worker('js/worker.js');
-
-        this._worker.onerror = function (error, s) {
+        worker.onerror = function (error, s) {
             console.error(error);
         };
 
-        this.resize(this.width, this.height);
-
-        this._worker.onmessage = (e) => {
+        worker.onmessage = (e) => {
             let corners,
                 markers = e.data;
 
             if (!markers.length) {
-                requestAnimationFrame(() => this._tick());
                 return;
             }
 
@@ -180,8 +173,22 @@ class JsAruco {
             }
 
             this._create3dModelForAR(corners);
-
         }
+
+        return worker;
+    }
+
+    _setup(event) {
+        this.width         = this._display.width || window.innerWidth;
+        this.ratio         = event.target.clientWidth / event.target.clientHeight;
+        this.height        = (1 / this.ratio) * this.width;
+        this._video.width  = VIDEO_WIDTH;
+        this._video.height = (1 / this.ratio) * VIDEO_WIDTH;
+
+        this.resize(this.width, this.height);
+
+        // NOTE The worker must be called from the base.
+        this._worker = this._createWorker();
 
         this._tick();
     }
@@ -199,4 +206,4 @@ class JsAruco {
     }
 }
 
-export default JsAruco;
+export {AR, AR_EVENT};

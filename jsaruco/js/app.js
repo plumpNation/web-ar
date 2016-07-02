@@ -1,7 +1,7 @@
 require('babel-polyfill');
 
 import Scene from './scene3d';
-import JsAruco from './ar';
+import {AR, AR_EVENT} from './ar';
 import {ajax} from './util';
 
 window.onload = function () {
@@ -20,7 +20,7 @@ function onConfigLoad(config) {
             display  : config.display || {}
         },
 
-        ar = new JsAruco(arOptions),
+        ar = new AR(arOptions),
 
         scene = new Scene({
             element: document.getElementById('threejs')
@@ -37,7 +37,7 @@ function onConfigLoad(config) {
 
     feed.then(onFeedEstablished, (e) => console.error(e));
 
-    document.addEventListener('AR.UPDATED', (e) => scene.update(e.detail));
+    document.addEventListener(AR_EVENT.UPDATED, (e) => scene.update(e.detail));
 
     window.addEventListener('resize', () => {
         ar.resize(window.innerWidth, window.innerHeight);
