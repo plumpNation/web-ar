@@ -16,7 +16,7 @@ class JsAruco {
         this._debug      = settings.debug;
         this._video      = settings.video;
 
-        if (settings.canvas) {
+        if (!settings.canvas) {
             this._canvas = document.createElement('canvas');
 
             if (this._debug) {
@@ -28,6 +28,7 @@ class JsAruco {
         }
 
         this._context = this._canvas.getContext('2d');
+
         this._data = {
             object3d: new THREE.Object3D()
         };
@@ -123,6 +124,7 @@ class JsAruco {
 
                 for (let j = 0; j < corners.length; ++j) {
                     let corner = corners[j];
+
                     this._context.moveTo(corner.x, corner.y);
                     corner = corners[(j + 1) % corners.length];
                     this._context.lineTo(corner.x, corner.y);
@@ -140,10 +142,9 @@ class JsAruco {
                 corner.y = (this.height / 2) - corner.y;
             });
 
-
-            let object3d = new THREE.Object3D();
-            let pose     = this._posit.pose(corners);
-            let position = pose.bestTranslation;
+            let object3d = new THREE.Object3D(),
+                pose     = this._posit.pose(corners),
+                position = pose.bestTranslation;
 
             object3d.position.set(position[0], position[1], -position[2]);
 
